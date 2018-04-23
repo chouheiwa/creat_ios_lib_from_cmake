@@ -39,16 +39,7 @@ class BaseConfig:
     workspace_path = None  # type: str
     schemes = None  # type: list
     local_text = None  # type: str
-    sharedBaseConfig = None # type: BaseConfig
-
-    @classmethod
-    def shared_base_config(cls):
-        # type: () -> BaseConfig
-        if cls.sharedBaseConfig is None:
-            cls.sharedBaseConfig = cls()
-        return cls.sharedBaseConfig;
-
-    def __init__(self):
+    def __init__(self,ini_Path):
         self.workspace_name = None
         self.local_text = None
         self.workspace_path = None
@@ -56,7 +47,8 @@ class BaseConfig:
         self.build_targets = None
         self.configuration = None
         self.final_archive_path = None
-        local = LocalFile('setting.ini')
+        self.ini_Path = ini_Path
+        local = LocalFile(ini_Path)
         local.load_from_file()
         if local.dump is None:
             print "setting.ini doesn't exist.Creat an default one.You need to restart again"
@@ -67,7 +59,7 @@ class BaseConfig:
 
     def load_local_bin(self):
         # type: () -> void
-        local = LocalFile('setting.ini')
+        local = LocalFile(self.ini_Path)
         local.load_from_file()
         ignore_prefix_array = ['#']
         array = local.dump.split('\n')
@@ -87,7 +79,7 @@ class BaseConfig:
                 setattr(self, key, value)
 
     def save_to_file(self):
-        local = LocalFile('setting.ini', False)
+        local = LocalFile(self.ini_Path, False)
         local.total_string = self.local_text
         local.write_to_file()
 

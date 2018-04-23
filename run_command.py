@@ -17,13 +17,15 @@ class re_python:
 
 
 class base_commnd_class:
-    def __init__(self):
-        self.work_space_path = BaseConfig.shared_base_config().workspace_path
-        self.work_space_name = BaseConfig.shared_base_config().workspace_name
-        self.build_schemes = BaseConfig.shared_base_config().schemes
-        self.total_need_builds = BaseConfig.shared_base_config().build_targets
-        self.build_configuration = BaseConfig.shared_base_config().configuration
-        self.final_archive_path = BaseConfig.shared_base_config().final_archive_path
+    def __init__(self,ini_path):
+        config = BaseConfig(ini_Path=ini_path)
+
+        self.work_space_path = config.workspace_path
+        self.work_space_name = config.workspace_name
+        self.build_schemes = config.schemes
+        self.total_need_builds = config.build_targets
+        self.build_configuration = config.configuration
+        self.final_archive_path = config.final_archive_path
 
 
 class run_os_command:
@@ -56,13 +58,15 @@ class run_os_command:
 class xbuild_commnd(run_os_command):
     xcode_build_sdk = None  # type: Dict[str, str]
 
-    def __init__(self, base_command):
-
+    def __init__(self):
         self.buildNum = None
         self.jenkinsProjectName = None
         self.xcode_build_sdk = {}
         self.get_all_can_build_sdk()
-        self.base_command = base_command
+        self.base_command = None
+        self.settinginiPath = None
+    def confirm_setting(self):
+        self.base_command = base_commnd_class(self.settinginiPath)
 
     def build_all(self):
         for result in self.base_command.total_need_builds:
@@ -118,16 +122,19 @@ class xbuild_commnd(run_os_command):
 
 def main(argv):
     try:
-        options, args = getopt.getopt(argv, "h", ["buildNum=","jenkinsProjectName="])
+        options, args = getopt.getopt(argv, "h", ["buildNum=","jenkinsProjectName=","settinginiPath="])
     except getopt.GetoptError,e:
         print e
         sys.exit(2)
-    xbuild = xbuild_commnd(base_commnd_class())  # type: xbuild_commnd
+    xbuild = xbuild_commnd()  # type: xbuild_commnd
     for key,value in options:
         if key in "--buildNum":
             setattr(xbuild,"buildNum",value)
         if key in "--jenkinsProjectName":
             setattr(xbuild,"jenkinsProjectName",value)
+        if key in "--settinginiPath":
+            setattr(xbuild,"settinginiPath",value)
+    xbuild.confirm_setting()
     xbuild.build_all()
     xbuild.find_a_file()
     xbuild.zip_final(xbuild.jenkinsProjectName + '_' + xbuild.buildNum)
