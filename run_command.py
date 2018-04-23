@@ -57,10 +57,12 @@ class xbuild_commnd(run_os_command):
     xcode_build_sdk = None  # type: Dict[str, str]
 
     def __init__(self, base_command):
+
+        self.buildNum = None
+        self.jenkinsProjectName = None
         self.xcode_build_sdk = {}
         self.get_all_can_build_sdk()
         self.base_command = base_command
-        pass
 
     def build_all(self):
         for result in self.base_command.total_need_builds:
@@ -92,6 +94,10 @@ class xbuild_commnd(run_os_command):
 
     def find_a_file(self):
         file_lists = os.listdir(self.base_command.work_space_path)
+
+        if not os.path.exists(self.base_command.final_archive_path + 'arch'):
+            os.system("mkdir {}".format(self.base_command.final_archive_path + 'arch'))
+
         for result_str in file_lists:
             if self.base_command.build_configuration in result_str:
                 extra_command = 'macOS'
@@ -112,14 +118,20 @@ class xbuild_commnd(run_os_command):
 
 def main(argv):
     try:
-        options, args = getopt.getopt(argv, "hp:b:", ["help", "password=", "buildNum=","jenkinsWorkSpacePath=","jenkinsProjectName=","optionsPlist=","svn=","borderlessCase="])
+        options, args = getopt.getopt(argv, "", ["buildNum=","jenkinsProjectName="])
     except getopt.GetoptError:
         print "error input"
         sys.exit(2)
+    xbuild = xbuild_commnd(base_commnd_class())  # type: xbuild_commnd
+    for key,value in options:
+        if key in "--buildNum":
+            setattr(xbuild,"buildNum",value)
+        if key in "--jenkinsProjectName":
+            setattr(xbuild,"jenkinsProjectName",value)
+    xbuild.build_all()
+    xbuild.find_a_file()
+    xbuild.zip_final(xbuild.jenkinsProjectName + '_' + xbuild.buildNum)
 
 if __name__ == '__main__':
-    BaseConfig.shared_base_config()
-    xbuild = xbuild_commnd(base_commnd_class())
-    xbuild.find_a_file()
-    xbuild.zip_final()
+    main(sys.argv[1:])
 
