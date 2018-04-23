@@ -118,7 +118,7 @@ class xbuild_commnd(run_os_command):
 
 def main(argv):
     try:
-        options, args = getopt.getopt(argv, "", ["buildNum=","jenkinsProjectName="])
+        options, args = getopt.getopt(argv, "h", ["buildNum=","jenkinsProjectName="])
     except getopt.GetoptError:
         print "error input"
         sys.exit(2)
